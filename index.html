@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>Name 256 scheme</title>
+  </head>
+  <body>
+    <p>This page encodes bytes into pronounceable 3-letter words (base 256).</p>
+    <p>This scheme was invented by wbic16 and is described <a href="https://hewo.xedoloh.com/2015/04/base-256/">on their blog</a> (<a href="https://web.archive.org/web/20150425043440/https://hewo.xedoloh.com/2015/04/base-256/">archive.org link</a>).
+    <noscript>You will need to enable JavaScript to use this script</noscript>
+    <table id="formtable" style="display: none;">
+      <tr>
+        <td><label for="name">Name:</label></td>
+        <td><input type="text" id="name"></td>
+      </tr>
+      <tr>
+        <td><label for="hex">Hexadecimal:</label></td>
+        <td><input type="text" id="hex"></td>
+      </tr>
+      <tr>
+        <td><label for="dec">Decimal:</label></td>
+        <td><input type="text" id="dec"></td>
+      </tr>
+      <tr>
+        <td colspan="2"><input type="button" id="random" value="Generate random value"></td>
+      </tr>
+    </table>
+    <script>
+function encode(num) {
+  let name = [];
+  while(num > 0) {
+    let n = num % 256;
+    let s = Math.floor(n / 16);
+    let v = Math.floor(n / 4) % 4;
+    let e = n % 4;
+    num = Math.floor(num / 256);
+    name.push(
+      'bghjklnpqrstvwyz'[s]
+      + 'aeio'[v]
+      + 'cdfm'[e]
+    );
+  }
+  name.reverse();
+  return name.join(' ');
+}
+
+function decode(str) {
+  let name = '';
+  let num = 0;
+  for(let i = 0; i < str.length; ++i) {
+    let c = str[i];
+    if(/\s/.test(c)) {
+      continue;
+    }
+    name += c.toLowerCase();
+    if(name.length === 3) {
+      let s = 'bghjklnpqrstvwyz'.indexOf(name[0]);
+      let v = 'aeio'.indexOf(name[1]);
+      let e = 'cdfm'.indexOf(name[2]);
+      if(s == -1 || v == -1 || e == -1) {
+        return null;
+      }
+      name = '';
+      num = num * 256 + s * 16 + v * 4 + e;
+    }
+  }
+  if(name != '') {
+    return null;
+  }
+  return num;
+}
+
+function toHex(num) {
+  let str = num.toString(16);
+  if(str.length % 2 != 0) {
+    str = '0' + str;
+  }
+  return str;
+}
+
+document.getElementById('formtable').style.display = '';
+const e_name = document.getElementById('name');
+const e_hex = document.getElementById('hex');
+const e_dec = document.getElementById('dec');
+e_name.addEventListener('change', () => {
+  let name = e_name.value;
+  let num = decode(name);
+  if(num === null) {
+    e_name.style.border = '1px solid red';
+  } else {
+    e_name.value = encode(num);
+    e_hex.value = toHex(num);
+    e_dec.value = num.toString(10);
+  }
+});
+e_hex.addEventListener('change', () => {
+  let num = Number.parseInt(e_hex.value, 16);
+  let name = encode(num);
+  e_name.value = name;
+  e_name.style.border = '';
+  e_hex.value = toHex(num);
+  e_dec.value = num.toString(10);
+});
+e_dec.addEventListener('change', () => {
+  let num = Number.parseInt(e_dec.value, 10);
+  let name = encode(num)
+  e_name.value = name;
+  e_name.style.border = '';
+  e_hex.value = toHex(num);
+  e_dec.value = num.toString(10);
+});
+document.getElementById('random').addEventListener('click', () => {
+  let num = Math.floor(Math.random() * 65536) * 65536 + Math.floor(Math.random() * 65536);
+  let name = encode(num);
+  e_name.value = name;
+  e_name.style.border = '';
+  e_hex.value = toHex(num);
+  e_dec.value = num.toString(10);
+});
+    </script>
+  </body>
+</html>
